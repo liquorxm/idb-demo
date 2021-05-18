@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import IndexedDBSet from './components/indexedDB/IndexedDBSet';
 import IndexedDBGet from './components/indexedDB/IndexedDBGet';
 import IndexedDBDelete from './components/indexedDB/IndexedDBDelete';
+import IndexedDBClear from './components/indexedDB/IndexedDBClear';
 
 export default function IndexPage() {
 
@@ -11,6 +12,7 @@ export default function IndexPage() {
         <IndexedDBSet />
         <IndexedDBGet />
         <IndexedDBDelete />
+        <IndexedDBClear />
       </div>
     </div>
   );

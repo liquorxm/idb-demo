@@ -7,10 +7,15 @@ interface IndexedDBSetProps {
   value: string;
 }
 
+interface storeProps {
+  dbName: string;
+  storeName: string;
+}
+
 interface IndexedDBGetProps {
   dbName: string;
   storeName: string;
-  key: string;
+  key: IDBValidKey | IDBKeyRange;
 }
 /**
  * 将 request 变为 Promise 对象
@@ -35,7 +40,6 @@ export const promisifyRequest = <T = undefined>({
     request.onerror = (e) => {
       reject(request.error);
       onError && onError(e, request.error);
-      message.error(`插入失败`);
     };
   });
 };
@@ -48,7 +52,7 @@ export const createStore = async ({
 }: {
   dbName: string;
   storeName: string;
-  onSuccess?: (e: Event, result: T) => void;
+  onSuccess?: (e: Event, result: any) => void;
   onError?: (e: Event, error: DOMException | null) => void;
 }) => {
   // 打开/创建数据库
@@ -81,10 +85,10 @@ export const indexedDBSet = async (props: IndexedDBSetProps) => {
     dbName,
     storeName,
     onSuccess: (e, result) => {
-      message.success(`插入${key}成功！`);
+      message.success(`插入 ${key} 成功！`);
     },
     onError: (e, error) => {
-      message.error(`插入${key}成功！`);
+      message.error(`插入 ${key} 失败！`);
     },
   });
   await storeFun('readwrite', (store: IDBObjectStore) => {
@@ -101,11 +105,11 @@ export const indexedDBGet = async (props: IndexedDBGetProps) => {
       dbName,
       storeName,
       onSuccess: (e, result) => {
-        message.success(`获取${key}成功！`);
+        message.success(`获取 ${key} 成功！`);
       },
       onError: (e, error) => {
         reject(e);
-        message.error(`获取${key}成功！`);
+        message.error(`获取 ${key} 失败！`);
       },
     });
     await storeFun('readwrite', async (store: IDBObjectStore) => {
@@ -127,17 +131,42 @@ export const indexedDBDelete = async (props: IndexedDBGetProps) => {
       dbName,
       storeName,
       onSuccess: (e, result) => {
-        message.success(`删除${key}成功！`);
+        message.success(`删除 ${key} 成功！`);
       },
       onError: (e, error) => {
         reject(e);
-        message.error(`删除${key}成功！`);
+        message.error(`删除 ${key} 失败！`);
       },
     });
     await storeFun('readwrite', async (store: IDBObjectStore) => {
       // 获取数据
       const idbDel = store.delete(key);
       idbDel.addEventListener('success', (e) => {
+        resolve(e);
+      });
+    });
+  });
+};
+
+export const indexedDBClear = async (props: storeProps) => {
+  return new Promise(async (resolve, reject) => {
+    let value;
+    const { dbName, storeName } = props;
+    const storeFun = await createStore({
+      dbName,
+      storeName,
+      onSuccess: (e, result) => {
+        message.success(`clear ${storeName} 成功！`);
+      },
+      onError: (e, error) => {
+        reject(e);
+        message.error(`clear ${storeName} 失败！`);
+      },
+    });
+    await storeFun('readwrite', async (store: IDBObjectStore) => {
+      // 获取数据
+      const idbClear = store.clear();
+      idbClear.addEventListener('success', (e) => {
         resolve(e);
       });
     });
